@@ -1,0 +1,9 @@
+numpy
+playwright
+pyodbc
+pytest
+python_dateutil
+pytest-playwright
+junit-xml
+pytest-azurepipelines
+pytest-cov

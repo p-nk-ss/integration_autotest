@@ -1,0 +1,41 @@
+trigger:
+  - master
+
+jobs:
+
+  - job: InstallPreconditionsAndDependencies
+    pool: Autotest
+    timeoutInMinutes: 180
+    cancelTimeoutInMinutes: 2
+    steps:
+      - script: |
+         cd Config
+         python SetEnvironment.py %env_name%
+        displayName: Set $(env_name) environment
+      - script: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          playwright install
+        displayName: Install dependencies
+      - script: |
+          python -m testCases.precondition
+        displayName: Install Preconditions
+
+  - job: TEST
+    pool: Autotest
+    timeoutInMinutes: 500
+    cancelTimeoutInMinutes: 2
+    dependsOn: InstallPreconditionsAndDependencies
+    steps:
+
+      - script: |
+          echo marker value: %marker%
+        displayName: Check marker Value
+
+      - script: |
+          IF NOT "%marker%"=="" (
+              pytest -vv -m "%marker%" --tb=long -rP --disable-warnings --junitxml=junit/test-results.xml --cov=. --cov-report=xml
+          ) ELSE (
+              pytest -vv --tb=long -rP --disable-warnings --junitxml=junit/test-results.xml --cov=. --cov-report=xml
+          )
+        displayName: Run Tests
